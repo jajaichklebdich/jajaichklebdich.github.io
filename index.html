@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Markdown Viewer</title>
+
+  <!-- Lightweight client-side loader that feature-detects and loads polyfills only when necessary -->
+  <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2/webcomponents-loader.min.js"></script>
+
+  <!-- Load the element definition -->
+  <script type="module" src="https://cdn.jsdelivr.net/gh/zerodevx/zero-md@1/src/zero-md.min.js"></script>
+
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Style for buttons */
+    button {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    /* Style for the Save and Edit buttons */
+    #editButton, #saveButton {
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    .buttons-container {
+      display: flex;
+      justify-content: flex-start;
+      padding: 10px;
+    }
+
+    .scroll-box {
+      position: fixed;
+      top: 50%;
+      left: 0;
+      width: 20px;
+      height: 20px;
+      transform: translateY(-50%);
+      background-color: #ccc;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Style for textarea in edit mode */
+    textarea {
+      width: 100%;
+      height: 100vh;
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin: 0;
+      resize: none;
+    }
+
+    /* Style for the markdown content in view mode */
+    zero-md {
+      color: white; /* Set the font color to white */
+    }
+
+    /* Style for the Choose File input */
+    #fileInput {
+      display: none; /* Hide the default file input */
+    }
+
+    .file-input-label {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
+      display: inline-block;
+    }
+    
+  </style>
+</head>
+<body>
+
+<!-- Buttons for Edit and Save -->
+<div class="buttons-container">
+  <button id="editButton" onclick="toggleEditMode()">Edit</button>
+  <button id="saveButton" onclick="saveFile()" style="display: block;">Save</button>
+</div>
+
+<!-- Styled label for Choose File input -->
+<label for="fileInput" class="file-input-label">Choose File</label>
+
+<!-- Input for selecting a Markdown file -->
+<input type="file" id="fileInput" accept=".md">
+
+<!-- Display area for the zero-md element or textarea -->
+<div id="markdownContainer"></div>
+
+<script>
+  let isEditMode = false;
+  let currentMarkdownContent = '';
+
+  document.getElementById('fileInput').addEventListener('change', function (event) {
+    const file = event.target.files[0];
+
+    if (file) {
+      // Read the contents of the file
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        currentMarkdownContent = e.target.result;
+
+        // Dynamically create a zero-md element or a textarea based on edit mode
+        const contentContainer = document.getElementById('markdownContainer');
+        contentContainer.innerHTML = '';
+
+        if (isEditMode) {
+          const textarea = document.createElement('textarea');
+          textarea.value = currentMarkdownContent;
+          contentContainer.appendChild(textarea);
+          document.getElementById('saveButton').style.display = 'block';
+        } else {
+          const zeroMdElement = document.createElement('zero-md');
+          const mdContent = encodeURIComponent(currentMarkdownContent);
+          zeroMdElement.innerHTML = `<style>:host { color: white; }</style><zero-md src="data:text/plain;charset=utf-8,${mdContent}"></zero-md>`;
+          contentContainer.appendChild(zeroMdElement);
+        }
+      };
+
+      reader.readAsText(file);
+    }
+  });
+
+  function toggleEditMode() {
+    isEditMode = !isEditMode;
+    updateButtonLabel();
+  }
+
+  function updateButtonLabel() {
+    const editButton = document.getElementById('editButton');
+    const saveButton = document.getElementById('saveButton');
+    const contentContainer = document.getElementById('markdownContainer');
+
+    if (isEditMode) {
+      editButton.textContent = 'View';
+
+      // Allow direct editing of the Markdown code
+      const textarea = document.createElement('textarea');
+      textarea.value = currentMarkdownContent;
+      contentContainer.innerHTML = '';
+      contentContainer.appendChild(textarea);
+      saveButton.style.display = 'block';
+    } else {
+      editButton.textContent = 'Edit';
+
+      // Render the edited Markdown code
+      const editedContent = contentContainer.firstChild.value;
+      const zeroMdElement = document.createElement('zero-md');
+      const mdContent = encodeURIComponent(editedContent);
+      zeroMdElement.innerHTML = `<style>:host { color: white; }</style><zero-md src="data:text/plain;charset=utf-8,${mdContent}"></zero-md>`;
+      contentContainer.innerHTML = '';
+      contentContainer.appendChild(zeroMdElement);
+      saveButton.style.display = 'block'; // Display the Save button in view mode
+
+      // Scroll to the top when entering view mode
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function saveFile() {
+    const editedContent = document.getElementById('markdownContainer').firstChild.value;
+    const blob = new Blob([editedContent], { type: 'text/markdown' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'edited_content.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+</script>
+
+</body>
+</html>
