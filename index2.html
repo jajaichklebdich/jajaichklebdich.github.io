@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Time :</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #e99221;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            margin-top: 20%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 0.5em;
+            text-shadow: 0 0 20px #e99221, 0 0 40px #e99221;
+            position: relative;
+        }
+
+        #currentTime {
+            font-size: 2em;
+            text-shadow: 0 0 20px #e99221, 0 0 40px #e99221;
+            display: inline-block;
+            animation: blink 1s infinite;
+            position: relative;
+        }
+
+        @keyframes fisheye {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes blink {
+            0%, 50%, 100% {
+                opacity: 1;
+            }
+            25%, 75% {
+                opacity: 0;
+            }
+        }
+
+        h1::before, h1::after {
+            left: 0;
+        }
+
+        h1::after {
+            top: auto;
+            bottom: 50%;
+        }
+
+        #currentTime::before, #currentTime::after {
+            left: 0;
+        }
+
+        #currentTime::after {
+            top: auto;
+            bottom: 50%;
+        }
+    </style>
+    <script>
+        function updateCurrentTime() {
+            // Get the current date and time in Germany
+            const germanyTime = new Date().toLocaleString('en-US', {timeZone: 'Europe/Berlin'});
+            const currentTime = new Date(germanyTime);
+
+            // Calculate the time in minutes
+            const minutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+
+            // Display the time
+            document.getElementById('currentTime').textContent = minutes;
+        }
+
+        // Update the time every second
+        setInterval(updateCurrentTime, 1000);
+
+        // Initial call to set the time immediately
+        updateCurrentTime();
+    </script>
+</head>
+<body>
+    <h1>Current Time in Germany (in minutes): <span id="currentTime"></span></h1>
+</body>
+</html>
