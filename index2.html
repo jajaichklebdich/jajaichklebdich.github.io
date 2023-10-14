@@ -26,18 +26,10 @@
             font-size: 2em;
             text-shadow: 0 0 20px #e99221, 0 0 40px #e99221;
             display: inline-block;
-            animation: blink 1s infinite;
+            animation: blink 1.5s infinite;
             position: relative;
         }
 
-        @keyframes fisheye {
-            0% {
-                transform: scale(1);
-            }
-            100% {
-                transform: scale(1.1);
-            }
-        }
 
         @keyframes blink {
             0%, 50%, 100% {
@@ -87,6 +79,6 @@
     </script>
 </head>
 <body>
-    <h1>Current Time in Germany (in minutes): <span id="currentTime"></span></h1>
+    <h1>Current Time: <span id="currentTime"></span></h1>
 </body>
 </html>
