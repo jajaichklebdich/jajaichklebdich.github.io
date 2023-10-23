@@ -1,16 +1,16 @@
 {
-  "name": "ArchiveReader",
-  "short_name": "ArchRead",
-  "description": "Reader",
-  "start_url": "./index.html",
-  "display": "fullscreen",
-  "background_color": "#000",
-  "theme_color": "#000",
-  "icons": [
-    {
-      "src": "icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    }
-  ]
+    "name": "PWA Uhr",
+    "short_name": "Uhr",
+    "description": "Eine einfache PWA Uhr mit Alarmfunktion",
+    "start_url": "/index3.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+        {
+            "src": "/icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ]
 }
