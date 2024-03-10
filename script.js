@@ -1,4 +1,5 @@
 const apiKey = 'AIzaSyC_6mL9XuHaQSeuTWMTYlX29RUMyh19NRM';
+let nextPageToken = '';
 
 function searchMusic() {
     var searchTerm = document.getElementById('searchInput').value;
@@ -7,6 +8,7 @@ function searchMusic() {
     fetch(url)
         .then(response => response.json())
         .then(data => {
+            nextPageToken = data.nextPageToken;
             displayMusicResults(data.items);
         })
         .catch(error => console.error('Error:', error));
@@ -14,7 +16,6 @@ function searchMusic() {
 
 function displayMusicResults(videos) {
     var musicList = document.getElementById('musicList');
-    musicList.innerHTML = '';
 
     videos.forEach(video => {
         var musicItem = document.createElement('div');
@@ -44,7 +45,6 @@ function displayMusicResults(videos) {
         };
 
         musicItem.appendChild(thumbnail);
-
         musicList.appendChild(musicItem);
     });
 }
@@ -67,4 +67,29 @@ function checkEmbeddable(videoId, callback) {
             console.error('Error:', error);
             callback(false);
         });
+}
+
+// Implementing endless scrolling
+window.addEventListener('scroll', function() {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+        // User has scrolled to the bottom of the page
+        fetchMoreResults();
+    }
+});
+
+function fetchMoreResults() {
+    if (!nextPageToken) {
+        return; // No more results to fetch
+    }
+
+    var searchTerm = document.getElementById('searchInput').value;
+    var url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=' + searchTerm + '&type=video&pageToken=' + nextPageToken + '&key=' + apiKey;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            nextPageToken = data.nextPageToken;
+            displayMusicResults(data.items);
+        })
+        .catch(error => console.error('Error:', error));
 }
