@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Music Player</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            background-color: #222;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .player-container {
+            background-color: #333;
+            border-radius: 10px;
+            padding: 20px;
+            width: 400px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .song-list {
+            max-height: 150px;
+            overflow-y: scroll;
+            margin-bottom: 20px;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .song-list::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .song-list::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 5px;
+        }
+
+        .song {
+            padding: 5px;
+            cursor: pointer;
+            color: #bbb;
+        }
+
+        .song:hover, .song.active {
+            background-color: #555;
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .play-pause-btn {
+            background-color: #444;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .play-pause-btn:hover {
+            background-color: #666;
+        }
+
+        .slider {
+            width: 250px;
+            cursor: pointer;
+        }
+
+        .song-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        iframe {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="player-container">
+    <div class="song-title" id="current-song-title">Select a song</div>
+    
+    <div class="song-list" id="song-list">
+        <div class="song" data-id="BqDjMZKf-wg" data-title="Centerfold">Centerfold - The J. Geils Band</div>
+        <div class="song" data-id="YoDh_gHDvkk" data-title="Under Pressure">Under Pressure - Queen & David Bowie</div>
+        <div class="song" data-id="1k8craCGpgs" data-title="Don't Stop Believin'">Don't Stop Believin' - Journey</div>
+        <div class="song" data-id="iPUmE-tne5U" data-title="Walking on Sunshine">Walking on Sunshine - Katrina and the Waves</div>
+        <div class="song" data-id="ZbZSe6N_BXs" data-title="Happy">Happy - Pharrell Williams</div>
+        <div class="song" data-id="1ZLjVRdC53Y" data-title="Aye">Aye - Lil Uzi</div>
+        <div class="song" data-id="fEk-TkAGqQE" data-title="Moon">Moon - Ye West</div>
+    </div>
+
+    <div class="controls">
+        <button class="play-pause-btn" id="playPauseBtn">Play</button>
+        <input type="range" id="progress-bar" class="slider" min="0" max="100" value="0">
+    </div>
+</div>
+
+<!-- YouTube Player -->
+<div id="player"></div>
+
+<script>
+    let player;
+    let isPlaying = false;
+    let currentVideoId = null;
+    let progressInterval;
+
+    // Load YouTube IFrame API
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '0',
+            width: '0',
+            videoId: '',
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+        // Player is ready
+    }
+
+    function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING && !isPlaying) {
+            isPlaying = true;
+            playPauseBtn.textContent = 'Pause';
+            startProgress();
+        } else if (event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.ENDED) {
+            isPlaying = false;
+            playPauseBtn.textContent = 'Play';
+            stopProgress();
+        }
+    }
+
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const progressBar = document.getElementById('progress-bar');
+    const currentSongTitle = document.getElementById('current-song-title');
+    const songList = document.getElementById('song-list');
+
+    // Handle song selection
+    songList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('song')) {
+            const videoId = e.target.getAttribute('data-id');
+            const songTitle = e.target.getAttribute('data-title');
+
+            document.querySelectorAll('.song').forEach(song => song.classList.remove('active'));
+            e.target.classList.add('active');
+            currentSongTitle.textContent = songTitle;
+
+            loadVideo(videoId);
+        }
+    });
+
+    function loadVideo(videoId) {
+        currentVideoId = videoId;
+        player.loadVideoById(videoId);
+        isPlaying = true;
+        playPauseBtn.textContent = 'Pause';
+    }
+
+    // Toggle play/pause
+    playPauseBtn.addEventListener('click', () => {
+        if (isPlaying) {
+            player.pauseVideo();
+        } else {
+            player.playVideo();
+        }
+    });
+
+    // Update progress bar based on video duration and time
+    function startProgress() {
+        progressInterval = setInterval(() => {
+            const duration = player.getDuration();
+            const currentTime = player.getCurrentTime();
+            const percentage = (currentTime / duration) * 100;
+            progressBar.value = percentage;
+        }, 1000);
+    }
+
+    function stopProgress() {
+        clearInterval(progressInterval);
+    }
+
+    // Seek within the video when the slider is changed
+    progressBar.addEventListener('input', () => {
+        const duration = player.getDuration();
+        const newTime = (progressBar.value / 100) * duration;
+        player.seekTo(newTime, true);
+    });
+
+    // Load YouTube API script
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    // Fullscreen Mode Request
+    document.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        }
+    });
+</script>
+
+</body>
+</html>
